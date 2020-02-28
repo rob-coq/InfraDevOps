@@ -1,0 +1,5 @@
+---
+- hosts: kube-cluster
+  roles:
+    - role: kubernetes-master
+      become: yes
