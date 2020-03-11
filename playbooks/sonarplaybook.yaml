@@ -1,0 +1,14 @@
+---
+- hosts: JenkinsSlave
+  become: true
+  vars:
+    java_packages:
+      - openjdk-8-jdk
+  pre_tasks:
+    - name: Install package dependencies.
+      package:
+        name: unzip
+        state: "present"
+  roles:
+    - java-master
+    - sonarqube-master
