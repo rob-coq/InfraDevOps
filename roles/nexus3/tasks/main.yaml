@@ -1,43 +1,41 @@
 ---
-- name: installation packages openjdk-8-jdk [openjdk-8-jdk]
-  apt: 
-    name: "{{ jdk_packages }}"
-    state: latest
+- name: test connection
+  ping:
+- name: install openjdk-8-jdk
+  apt:
+    name: openjdk-8-jdk
     update_cache: yes
-- name: Creation utilisateur nexus
-  user: 
+- name: create nexus user
+  user:
     name: nexus
-- name: Creation du repertoire /opt/nexus
+- name: create nexus directory
   file:
-    path: /opt/nexus
     state: directory
-- name: Télécharger et extraire un fichier
+    path: /opt/nexus
+- name: download nexus
   unarchive:
-    src: http://download.sonatype.com/nexus/3/nexus-3.15.2-01-unix.tar.gz
+    creates: /opt/nexus/nexus-3.15.2-01/bin/nexus
     dest: /opt/nexus
     remote_src: yes
-    creates: /opt/nexus/nexus-3.15.2-01/
-- name: Modification du fichier nexus-3.15.2-01/bin/nexus.rc
-  replace:
-    path: /opt/nexus/nexus-3.15.2-01/bin/nexus.rc
-    regexp: .*
-    replace: run_as_user="nexus"
-- name: Donner les droits du dossier à l'utilisateur nexus
+    src: http://download.sonatype.com/nexus/3/nexus-3.15.2-01-unix.tar.gz
+- name: change ownership of directory  
   file:
-    path: /opt/nexus
     state: directory
+    path: /opt/nexus
+    owner: nexus
     recurse: yes
-    owner: nexus
-    group: nexus
-- name: Creation du lien symbolique
+- name: give access to user nexus
+  lineinfile:
+    create: yes
+    path: /opt/nexus/nexus-3.15.2-01/bin/nexus.rc
+    line: run_as_user="nexus"
+- name: create symbolic link
   file:
-    src: /opt/nexus/nexus-3.15.2-01/bin/nexus
-    dest: /etc/init.d/nexus 
-    owner: nexus
-    group: nexus
     state: link
-- name: Lancement du service
-  service:
+    path: /etc/init.d/nexus
+    src: /opt/nexus/nexus-3.15.2-01/bin/nexus
+- name: start nexus
+  systemd:
+    daemon_reload: yes
     name: nexus
     state: started
-    enabled: yes
