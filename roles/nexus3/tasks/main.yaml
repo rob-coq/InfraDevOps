@@ -1,0 +1,43 @@
+---
+- name: installation packages openjdk-8-jdk [openjdk-8-jdk]
+  apt: 
+    name: "{{ jdk_packages }}"
+    state: latest
+    update_cache: yes
+- name: Creation utilisateur nexus
+  user: 
+    name: nexus
+- name: Creation du repertoire /opt/nexus
+  file:
+    path: /opt/nexus
+    state: directory
+- name: Télécharger et extraire un fichier
+  unarchive:
+    src: http://download.sonatype.com/nexus/3/nexus-3.15.2-01-unix.tar.gz
+    dest: /opt/nexus
+    remote_src: yes
+    creates: /opt/nexus/nexus-3.15.2-01/
+- name: Modification du fichier nexus-3.15.2-01/bin/nexus.rc
+  replace:
+    path: /opt/nexus/nexus-3.15.2-01/bin/nexus.rc
+    regexp: .*
+    replace: run_as_user="nexus"
+- name: Donner les droits du dossier à l'utilisateur nexus
+  file:
+    path: /opt/nexus
+    state: directory
+    recurse: yes
+    owner: nexus
+    group: nexus
+- name: Creation du lien symbolique
+  file:
+    src: /opt/nexus/nexus-3.15.2-01/bin/nexus
+    dest: /etc/init.d/nexus 
+    owner: nexus
+    group: nexus
+    state: link
+- name: Lancement du service
+  service:
+    name: nexus
+    state: started
+    enabled: yes
